@@ -300,7 +300,7 @@ export class App implements OnInit {
 
   //Put Request Consuming
 
-  async updateProduct(event: Event) {
+  async updateProduct(event: Event) : Promise<void> {
     event.preventDefault();
 
     const p = this.selectedProduct();
