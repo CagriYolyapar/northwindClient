@@ -27,7 +27,7 @@
     <td>{{ category.description }}</td>
     <td>
       <button (click)="editCategory(category)">Güncelle</button>
-      <button>Sil</button>
+      <button (click)="deleteCategory(category.id)">Sil</button>
     </td>
   </tr>
   }

@@ -162,15 +162,48 @@ export class App implements OnInit {
         })
       );
 
-      console.log("Update mesajı:",message);
+      console.log('Update mesajı:', message);
 
       this.categories.set(await this.getCategories());
 
       //Secili kategoriyi tekrar null'a cekiyoruz
       this.selectedCategory.set(null);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  //Kategori silmek icin kullanılacak fonksiyon :
+  async deleteCategory(id: number) {
+    const confirmDelete = window.confirm(
+      `Id'si ${id} olan kategoriyi silmek istediginizden emin misiniz`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const message = await lastValueFrom(
+        this.http.delete('http://localhost:5004/api/Category', {
+          body: id,
+          responseType: 'text',
+        })
+      );
+      console.log('Delete mesajı:', message);
+
+      //Silme durumundan sonra iki seceneginiz var:
+      //Ya tüm listeyi tekrar sever'dan cekersiniz (garantici)
+      //this.categories.set(await this.getCategories());
+
+      //2 ya da local state'ten düsersiniz(optimistik yöntem)
+
+      this.categories.update((current) => current.filter((x:any) => x.id !==id))
+
 
     } catch (error) {
       console.log(error);
     }
   }
+
+
+  //-----------------------Product tarafı--------------------------
 }
