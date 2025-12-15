@@ -196,14 +196,150 @@ export class App implements OnInit {
 
       //2 ya da local state'ten düsersiniz(optimistik yöntem)
 
-      this.categories.update((current) => current.filter((x:any) => x.id !==id))
-
-
+      this.categories.update((current) => current.filter((x: any) => x.id !== id));
     } catch (error) {
       console.log(error);
     }
   }
 
-
   //-----------------------Product tarafı--------------------------
+
+  //Product Formundaki combobox icin yarattıgımız property
+
+  protected categoriesForSelect = signal<any>([]);
+
+  //Product listesi
+
+  protected products = signal<any>([]);
+
+  //Product update icin secilen product
+  protected selectedProduct = signal<any | null>(null);
+
+  //Product Creation icin form alanları
+  protected newProductName = signal<string>('');
+  protected newProductUnitPrice = signal<number>(0);
+  protected newProductCategoryId = signal<number>(0); //combobox'tan sectigimiz kategori id buraya gelecek
+
+  async getProducts(): Promise<any[]> {
+    return lastValueFrom(this.http.get<any[]>('http://localhost:5004/api/Product'));
+  }
+
+  onNewProductNameChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    this.newProductName.set(value);
+  }
+
+  onNewProductUnitPriceChange(event: Event) {
+    const value = Number((event.target as HTMLInputElement).value);
+    this.newProductUnitPrice.set(isNaN(value) ? 0 : value);
+  }
+
+  //Combobox degiştiginde secili CategoryId'nin güncellenmesi
+  onNewProductCategoryChange(event: Event) {
+    const value = Number((event.target as HTMLSelectElement).value);
+    this.newProductCategoryId.set(value);
+  }
+
+  //Product Ekleme Tarafı
+
+  async addProduct(event: Event) {
+    event.preventDefault();
+
+    const body = {
+      productName: this.newProductName(),
+      unitPrice: this.newProductUnitPrice(),
+      categoryId: this.newProductCategoryId(),
+    };
+
+    try {
+      const message = await lastValueFrom(
+        this.http.post('http://localhost:5004/api/Product', body, {
+          responseType: 'text',
+        })
+      );
+
+      console.log('Product ekleme mesajı : ', message);
+
+      this.products.set(await this.getProducts());
+
+      this.newProductName.set('');
+      this.newProductUnitPrice.set(0);
+      this.newProductCategoryId.set(0);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  //Update Product tarafı
+  editProduct(product: any) {
+    this.selectedProduct.set({ ...product });
+  }
+
+  onEditProductNameChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+
+    this.selectedProduct.update((p) => (p ? { ...p, productName: value } : p));
+  }
+
+  onEditProductUnitPriceChange(event: Event) {
+    const value = Number((event.target as HTMLInputElement).value);
+
+    this.selectedProduct.update((p) => (p ? { ...p, unitPrice: isNaN(value) ? 0 : value } : p));
+  }
+
+  //Combobox change durumu
+  onEditProductCategoryChange(event: Event) {
+    const value = Number((event.target as HTMLSelectElement).value);
+
+    this.selectedProduct.update((p) => (p ? { ...p, categoryId: value } : p));
+  }
+
+  cancelProductEdit() {
+    this.selectedProduct.set(null);
+  }
+
+  //Put Request Consuming
+
+  async updateProduct(event: Event) {
+    event.preventDefault();
+
+    const p = this.selectedProduct();
+    if (!p) return;
+
+    const body = {
+      id: p.id,
+      productName: p.productName,
+      unitPrice: p.unitPrice,
+      categoryId: p.categoryId,
+    };
+
+    try {
+      const message = await lastValueFrom(
+        this.http.put('http://localhost:5004/api/Product', body, { responseType: 'text' })
+      );
+
+      console.log('Update mesajı: ', message);
+
+      this.products.set(await this.getProducts());
+      this.selectedProduct.set(null);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  //Product Delete tarafı
+
+  async deleteProduct(id: number) {
+    const ok = window.confirm('Silmek istediginize emin misiniz?');
+
+    if (!ok) return;
+
+    const message = await lastValueFrom(
+      this.http.delete(`http://localhost:5004/api/Product?id=${id}`, { responseType: 'text' })
+    );
+
+    console.log(message);
+
+    this.products.set(await this.getProducts());
+  }
 }

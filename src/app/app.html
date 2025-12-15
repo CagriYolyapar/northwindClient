@@ -60,10 +60,12 @@
 <hr />
 
 <!--Edit Formu-->
-<!--todo : modern if gösterilecek-->
 
-<div *ngIf="selectedCategory() as cat">
-  <h4>Kategori güncelle (Id: {{ cat.id }})</h4>
+
+
+@if(selectedCategory(); as cat){
+<div>
+   <h4>Kategori güncelle (Id: {{ cat.id }})</h4>
 
   <form (submit)="updateCategory($event)">
     <input type="text" [value]="cat.categoryName" (input)="onEditNameChange($event)" />
@@ -75,3 +77,25 @@
 
   </form>
 </div>
+}
+
+
+<!-- <div *ngIf="selectedCategory() as cat">
+  <h4>Kategori güncelle (Id: {{ cat.id }})</h4>
+
+  <form (submit)="updateCategory($event)">
+    <input type="text" [value]="cat.categoryName" (input)="onEditNameChange($event)" />
+
+    <input type="text" [value]="cat.description" (input)="onEditDescriptionChange($event)" />
+
+    <button type="submit">Kaydet</button>
+    <button type="button" (click)="cancelEdit()">İptal</button>
+
+  </form>
+</div> -->
+
+
+
+
+
+<!--      =================Product Entegrasyonu                   -->
