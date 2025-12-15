@@ -2,13 +2,15 @@
 
 <!--zoneless sistem-->
 
+<!--
+
 <ul>
   @for(category of categories();track category.Id){
-  <!--Json'dan gelen dosyanın propertylerine dikkat ediniz...-->
+  //Json'dan gelen dosyanın propertylerine dikkat ediniz...
   <li>{{ category.id }} - {{ category.categoryName }}</li>
   }
 </ul>
-
+-->
 <hr />
 
 <table>
@@ -24,7 +26,7 @@
     <td>{{ category.categoryName }}</td>
     <td>{{ category.description }}</td>
     <td>
-      <button>Güncelle</button>
+      <button (click)="editCategory(category)">Güncelle</button>
       <button>Sil</button>
     </td>
   </tr>
@@ -37,12 +39,39 @@
 
 <form (submit)="addCategory($event)">
   <!--Kategori ismi input'u-->
-<input type="text" placeholder="Kategori İsmi" [value]="newCategoryName()" (input)="onNewCategoryNameChange($event)" />
+  <input
+    type="text"
+    placeholder="Kategori İsmi"
+    [value]="newCategoryName()"
+    (input)="onNewCategoryNameChange($event)"
+  />
 
-<!--Acıklama input'u-->
-<input type="text" placeholder="Acıklama" [value]="newCategoryDescription()" (input)="onNewCategoryDescriptionChange($event)"  />
+  <!--Acıklama input'u-->
+  <input
+    type="text"
+    placeholder="Acıklama"
+    [value]="newCategoryDescription()"
+    (input)="onNewCategoryDescriptionChange($event)"
+  />
 
-<button type="submit">Ekle</button>
-
-
+  <button type="submit">Ekle</button>
 </form>
+
+<hr />
+
+<!--Edit Formu-->
+<!--todo : modern if gösterilecek-->
+
+<div *ngIf="selectedCategory() as cat">
+  <h4>Kategori güncelle (Id: {{ cat.id }})</h4>
+
+  <form (submit)="updateCategory($event)">
+    <input type="text" [value]="cat.categoryName" (input)="onEditNameChange($event)" />
+
+    <input type="text" [value]="cat.description" (input)="onEditDescriptionChange($event)" />
+
+    <button type="submit">Kaydet</button>
+    <button type="button" (click)="cancelEdit()">İptal</button>
+
+  </form>
+</div>

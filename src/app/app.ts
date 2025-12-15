@@ -2,10 +2,11 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
+import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, NgIf],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -96,14 +97,77 @@ export class App implements OnInit {
         })
       );
 
-      console.log("API mesajı ",message);
+      console.log('API mesajı ', message);
 
-      //Basarılıysa signal value'umuzu tekrar set etmeliyiz...En dogrusu server'dan listeyi yeniden cekmek : 
+      //Basarılıysa signal value'umuzu tekrar set etmeliyiz...En dogrusu server'dan listeyi yeniden cekmek :
       this.categories.set(await this.getCategories());
 
       //Form alanlarının resetlenmesi
       this.newCategoryName.set('');
       this.newCategoryDescription.set('');
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  //----------------------Update-------------
+
+  //Tablo satırındaki GÜncelle butonuna bastıgımızda cagrılmasını istedigimiz bir fonksiyon yaratıyoruz
+
+  editCategory(category: any) {
+    //Form'da degişiklik yaparken yanlıslıkla orijinal listeyi degiştirmemek adına önce ayrı bir nesnede calısıcaz...Sadece Kaydet dedigimizde listeyi güncelleyecegiz
+    this.selectedCategory.set({ ...category }); //nesneyi deconstruct edip tam yapısını ayrık bir şekilde ele geciriyoruz...
+  }
+
+  //Edit yaptıgımız zaman input'ta kategori adını degiştirdigimizde calısacak sistem
+  onEditNameChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+
+    this.selectedCategory.update((x) => {
+      if (!x) return x; //x null ise hic dokunma
+      return { ...x, categoryName: value };
+    });
+  }
+
+  onEditDescriptionChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+
+    this.selectedCategory.update((x) => {
+      if (!x) return x;
+      return { ...x, description: value };
+    });
+  }
+
+  cancelEdit() {
+    this.selectedCategory.set(null);
+  }
+
+  //Submit icin yarattıgımız fonksiyon
+  async updateCategory(event: Event) {
+    event.preventDefault();
+
+    const cat = this.selectedCategory();
+    if (!cat) return;
+
+    const body = {
+      id: cat.id,
+      categoryName: cat.categoryName,
+      description: cat.description,
+    };
+
+    try {
+      const message = await lastValueFrom(
+        this.http.put('http://localhost:5004/api/Category', body, {
+          responseType: 'text',
+        })
+      );
+
+      console.log("Update mesajı:",message);
+
+      this.categories.set(await this.getCategories());
+
+      //Secili kategoriyi tekrar null'a cekiyoruz
+      this.selectedCategory.set(null);
 
     } catch (error) {
       console.log(error);
